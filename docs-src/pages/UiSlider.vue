@@ -103,14 +103,21 @@
                                 <td>step</td>
                                 <td>Number</td>
                                 <td><code>10</code></td>
-                                <td>The amount to increment or decrement the slider value by when using the keyboard arrow keys. Also determines the snap points on the slider when <code>snapToSteps</code> is <code>true</code>.</td>
+                                <td>The amount to increment or decrement the slider value by when using the keyboard arrow keys. Also determines the snap points on the slider when <code>snapToSteps</code> is <code>true</code>. This parameter is ignored if a custom array of <code>steps</code> is defined.</td>
+                            </tr>
+
+                            <tr>
+                                <td>steps</td>
+                                <td>Array</td>
+                                <td></td>
+                                <td>An array of values to be used as steps when changing the slider value using the keyboard arrow keys. Also determines the snap points on the slider when <code>snapToSteps</code> is <code>true</code>. If no <code>snapPoints</code> are defined, then multiples of <code>step</code> will be used.</td>
                             </tr>
 
                             <tr>
                                 <td>snapToSteps</td>
                                 <td>Boolean</td>
                                 <td><code>false</code></td>
-                                <td>Whether or not the slider value should be snapped to distrete steps. Setting to <code>true</code> will ensure that the value is always a multiple of the <code>step</code> prop when a drag is completed.</td>
+                                <td>Whether or not the slider value should be snapped to discrete steps. Setting to <code>true</code> will ensure that the value is always a snap point when a drag is completed.</td>
                             </tr>
 
                             <tr>

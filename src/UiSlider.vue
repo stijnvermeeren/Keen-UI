@@ -95,6 +95,7 @@ export default {
             type: Boolean,
             default: false
         },
+        steps: Array,
         showMarker: {
             type: Boolean,
             default: false
@@ -150,6 +151,12 @@ export default {
         },
 
         snapPoints() {
+            if (this.steps !== undefined) {
+                return this.steps.filter(
+                    value => value >= this.validatedMinValue && value <= this.validatedMaxValue
+                ).sort();
+            }
+
             const points = [];
             let point = this.step * Math.ceil(this.validatedMinValue / this.step);
 
@@ -210,16 +217,6 @@ export default {
             }
         },
 
-        setValueWithSnap(value) {
-            value = this.getEdge(value);
-
-            if (this.snapToSteps) {
-                value = this.getNearestSnapPoint(value);
-            }
-
-            this.setValue(value);
-        },
-
         setValue(value) {
             value = this.getEdge(value);
 
@@ -233,11 +230,19 @@ export default {
         },
 
         incrementValue() {
-            this.setValueWithSnap(this.localValue + this.step);
+            if (this.snapToSteps) {
+                this.setValue(this.nextSnapPoint(this.localValue));
+            } else {
+                this.setValue(this.localValue + this.step);
+            }
         },
 
         decrementValue() {
-            this.setValueWithSnap(this.localValue - this.step);
+            if (this.snapToSteps) {
+                this.setValue(this.previousSnapPoint(this.localValue));
+            } else {
+                this.setValue(this.localValue - this.step);
+            }
         },
 
         getTrackOffset() {
@@ -286,7 +291,7 @@ export default {
 
         initializeDrag() {
             const value = this.getEdge(this.localValue ? this.localValue : 0);
-            this.setValueWithSnap(value);
+            this.setValue(value);
         },
 
         onDragStart(e) {
@@ -326,8 +331,11 @@ export default {
         onDragStop(e) {
             this.isDragging = false;
 
-            if (this.snapToSteps && this.value % this.step !== 0) {
-                this.setValueWithSnap(this.value);
+            if (this.snapToSteps) {
+                const nearestSnapPoint = this.nearestSnapPoint(this.value);
+                if (nearestSnapPoint !== this.value) {
+                    this.setValue(nearestSnapPoint);
+                }
             }
 
             document.removeEventListener('touchmove', this.onDragMove);
@@ -336,21 +344,44 @@ export default {
             this.$emit('dragend', this.localValue, e);
         },
 
-        getNearestSnapPoint(value) {
-            const previousSnapPoint = Math.floor(value / this.step) * this.step;
-            const nextSnapPoint = previousSnapPoint + this.step;
+        previousSnapPoint(value) {
+            if (this.snapPoints.length === 0) {
+                return value - this.step;
+            }
+
+            const previousSnapPoint = [...this.snapPoints].reverse().find(snapPoint => snapPoint < value);
+
+            if (previousSnapPoint === undefined) {
+                return this.snapPoints[0];
+            }
+
+            return previousSnapPoint;
+        },
+
+        nextSnapPoint(value) {
+            if (this.snapPoints.length === 0) {
+                return value + this.step;
+            }
+
+            const nextSnapPoint = this.snapPoints.find(snapPoint => value < snapPoint);
+
+            if (nextSnapPoint === undefined) {
+                return this.snapPoints[this.snapPoints.length - 1];
+            }
+
+            return nextSnapPoint;
+        },
+
+        nearestSnapPoint(value) {
+            if (this.snapPoints.length === 0 || this.snapPoints.includes(value)) {
+                return value;
+            }
+
+            const previousSnapPoint = this.previousSnapPoint(value);
+            const nextSnapPoint = this.nextSnapPoint(value);
             const midpoint = (previousSnapPoint + nextSnapPoint) / 2;
 
-            if (previousSnapPoint < this.validatedMinValue) {
-                if (nextSnapPoint > this.validatedMaxValue) {
-                    return value;
-                }
-                return nextSnapPoint;
-            }
-            if (value >= midpoint && nextSnapPoint <= this.validatedMaxValue) {
-                return nextSnapPoint;
-            }
-            return previousSnapPoint;
+            return value >= midpoint ? nextSnapPoint : previousSnapPoint;
         },
 
         relativeValue(value) {
