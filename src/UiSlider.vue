@@ -270,6 +270,7 @@ export default {
         },
 
         onDragStart(e) {
+            console.log('drag start', this.localValue);
             if (this.disabled) {
                 return;
             }
@@ -303,16 +304,20 @@ export default {
         },
 
         onDragStop(e) {
-            this.isDragging = false;
+            if (this.isDragging) {
+                console.log('drag stop', this.localValue);
 
-            if (this.snapToSteps && this.value % this.step !== 0) {
-                this.setValue(this.getNearestSnapPoint());
+                this.isDragging = false;
+
+                if (this.snapToSteps && this.value % this.step !== 0) {
+                    this.setValue(this.getNearestSnapPoint());
+                }
+
+                document.removeEventListener('touchmove', this.onDragMove);
+                document.removeEventListener('mousemove', this.onDragMove);
+
+                this.$emit('dragend', this.localValue, e);
             }
-
-            document.removeEventListener('touchmove', this.onDragMove);
-            document.removeEventListener('mousemove', this.onDragMove);
-
-            this.$emit('dragend', this.localValue, e);
         },
 
         getNearestSnapPoint() {
