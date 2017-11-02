@@ -329,19 +329,20 @@ export default {
         },
 
         onDragStop(e) {
-            this.isDragging = false;
+            if (this.isDragging) {
+                this.isDragging = false;
 
-            if (this.snapToSteps) {
-                const nearestSnapPoint = this.nearestSnapPoint(this.value);
-                if (nearestSnapPoint !== this.value) {
-                    this.setValue(nearestSnapPoint);
-                }
+            if (this.snapToSteps ) {
+                const nearestSnapPoint = this.nearestSnapPoint( this.value) ;
+                if (nearestSnapPoint !==this.value){
+            this.setValue(nearestSnapPoint);
+                }}
+
+                document.removeEventListener('touchmove', this.onDragMove);
+                document.removeEventListener('mousemove', this.onDragMove);
+
+                this.$emit('dragend', this.localValue, e);
             }
-
-            document.removeEventListener('touchmove', this.onDragMove);
-            document.removeEventListener('mousemove', this.onDragMove);
-
-            this.$emit('dragend', this.localValue, e);
         },
 
         previousSnapPoint(value) {
